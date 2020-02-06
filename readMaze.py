@@ -16,7 +16,6 @@ def parseMaze(filename):
         row = row + 1
         col = 0
 
-    print(maze)
     return maze
 
 

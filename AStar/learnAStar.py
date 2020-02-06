@@ -1,3 +1,5 @@
+import time
+
 import numpy
 from collections import namedtuple
 from queue import PriorityQueue
@@ -22,24 +24,30 @@ class LearnAStar:
 
     def __init__(self, maze):
         self.maze = maze
-        self.openList = PriorityQueue()
-        self.closeList = set()
         start = numpy.where(maze == 'B')
         end = numpy.where(maze == 'E')
         self.startPosition = Position(start[1][0], start[0][0])
         self.endPosition = Position(end[1][0], end[0][0])
 
+    def resetMaze(self):
+        self.openList = PriorityQueue()
+        self.closeList = set()
         self.openList.put((0, AStarNode(self.startPosition, 0, 0)))
-
         self.target = None
 
     def start(self):
+        self.resetMaze()
+        start = time.time()
         self.find_path()
+        end = time.time()
 
+        path = []
         i = self.target
         while i.parent is not None:
-            print(self.get_position(i.position))
+            path.append(self.get_position(i.position))
             i = i.parent
+
+        return end - start, len(path), path
 
     def find_path(self):
         while True:
@@ -48,7 +56,7 @@ class LearnAStar:
 
             if node.position == self.endPosition:
                 self.target = node
-                break;
+                break
 
             if position not in self.closeList:
                 self.closeList.add(position)
