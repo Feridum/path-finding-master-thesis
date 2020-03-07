@@ -37,3 +37,40 @@ def visualizeRL(Q, width,height):
         y_offset+=64
 
     im.show()
+
+def visualizeAStar(maze, path, closeList):
+    height = maze.shape[0]
+    width = maze.shape[1]
+    wall = Image.new("RGB", (64, 64), "#000000")
+    empty = Image.new("RGB", (64, 64), "#FFFFFF")
+    start = Image.new("RGB", (64, 64), "#00FF00")
+    finish = Image.new("RGB", (64, 64), "#FF0000")
+    pathImage = Image.new("RGB", (64, 64), "#0000FF")
+    visited = Image.new("RGB", (64, 64), "#87CEEB")
+
+    im = Image.new('RGB', (width * 64, height * 64))
+
+    x_offset = 0
+    y_offset = 0
+    for h in range(0, height):
+        for w in range(0, width):
+            if maze[h][w] == '#':
+                im.paste(wall, (x_offset, y_offset))
+            elif maze[h][w] == 'B':
+                im.paste(start, (x_offset, y_offset))
+            elif maze[h][w] == 'E':
+                im.paste(finish, (x_offset, y_offset))
+            elif get_position(w,h,width) in path:
+                im.paste(pathImage, (x_offset, y_offset))
+            elif get_position(w,h,width) in closeList:
+                im.paste(visited, (x_offset, y_offset))
+            else:
+                im.paste(empty, (x_offset, y_offset))
+            x_offset += 64
+        x_offset = 0
+        y_offset += 64
+
+    im.show()
+
+def get_position(x,y, width):
+    return y * width + x

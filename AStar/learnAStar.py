@@ -47,7 +47,7 @@ class LearnAStar:
             path.append(self.get_position(i.position))
             i = i.parent
 
-        return end - start, len(path), path
+        return end - start, len(path), path, self.closeList
 
     def find_path(self):
         while True:
