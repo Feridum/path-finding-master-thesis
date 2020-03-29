@@ -70,7 +70,7 @@ def visualizeAStar(maze, path, closeList):
         x_offset = 0
         y_offset += 64
 
-    im.show()
+    return im
 
 def get_position(x,y, width):
     return y * width + x

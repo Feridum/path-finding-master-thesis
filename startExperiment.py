@@ -1,12 +1,10 @@
-import time
-
-from numpy import load, save, asarray
+from numpy import load,save,asarray
 
 from AStar.learnAStar import LearnAStar
 from BFS.learnBFS import LearnBFS
 from Dijkstra.learnDijkstra import LearnDijkstra
 from displayPath import visualizeRL, visualizeAStar
-from learnRL import LearnRL
+from RL.learnRL import LearnRL
 from readMaze import parseMaze
 
 
@@ -16,17 +14,18 @@ def start_experiment():
     learn_a_star = LearnAStar(maze)
     aResults = learn_a_star.start()
     print(aResults[2])
-    learnRL = LearnRL(maze, aResults[2])
-    results = learnRL.startLearn(1)
+    learnRL = LearnRL(maze, seed=1584259720496)
+    results = learnRL.startLearn(strategy=3, rStrategy=2)
     print(results)
     # save('results2', asarray(results))
 
 def start_a_star_experiment():
-    # maze = parseMaze('./10_simple.txt')
-    maze = parseMaze('./maps/txt/map1.txt')
+    maze = parseMaze('./10_simple.txt')
+    # maze = parseMaze('./maps/txt/map1.txt')
     learn_a_star = LearnAStar(maze)
     [time, length, path, visited] = learn_a_star.start()
     visualizeAStar(maze, path, visited)
+    save('resultastar', asarray([time,length,path,visited]))
 
 
 def start_dijkstra_experiment():
@@ -49,7 +48,7 @@ def image():
 
 if __name__ == "__main__":
     # start_experiment()
-    # start_a_star_experiment()
+    start_a_star_experiment()
     # start_dijkstra_experiment()
-    start_bfs_experiment()
+    # start_bfs_experiment()
     # image()

@@ -18,6 +18,8 @@ def createMaze(filename):
         for x in range(0, width):
             if(pix[x,y] == (255, 255, 255, 255)):
                 result[y,x] = EMPTY
+            elif (pix[x, y] == (0, 0, 0, 0)):
+                result[y, x] = EMPTY
             elif(pix[x,y] == (0, 0, 0, 255)):
                 result[y,x] = WALL
             elif(pix[x,y] == (255, 0, 0, 255)):
@@ -30,6 +32,12 @@ def createMaze(filename):
         for line in result:
             txt_file.write("".join(line) + "\n")
 
+def createMazeForMazeType(mazeType):
+    sizes = [10,50,100]
+
+    for s in sizes:
+        createMaze(str(s)+'x'+str(s)+'_'+mazeType)
 
 if __name__ == "__main__":
-    createMaze('map1')
+    # createMaze('10x10_wall')
+    createMazeForMazeType('wall')

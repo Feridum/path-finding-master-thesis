@@ -19,7 +19,14 @@ class Direction(Enum):
 
 
 class LearnRL:
-    def __init__(self, maze, bonusFields = []):
+    def __init__(self, maze, bonusFields=None, seed=None, R=None, Q=None):
+        if Q is None:
+            Q = []
+        if R is None:
+            R = []
+        if bonusFields is None:
+            bonusFields = []
+
         self.start = numpy.where(maze == 'B')
         end = numpy.where(maze == 'E')
         self.startPosition = Position(self.start[1], self.start[0])
@@ -28,37 +35,62 @@ class LearnRL:
         self.learningRate = 0.8
         self.futureStepsRate = 0.9
         self.strategy = 1
-        self.R = []
-        self.Q = []
-        self.P = []
+        self.rStrategy = 1
+        self.R = R
+        self.Q = Q
         self.currentPosition = Position(0,0)
         self.stepsNumber = []
         self.maxDistance = 0
         self.bonusFields = bonusFields
+        self.e = 0.1
+        self.t = 0.5
+        self.startTime = 0
+        self.finishReason = 'COMPLETED'
+        random.seed(seed)
 
     def resetMaze(self):
         shape = self.maze.shape
         self.maxDistance = shape[0] + shape[1]
         self.R = numpy.zeros([shape[0] * shape[1], 4])
-        self.P = numpy.zeros([shape[0] * shape[1], 4])
         self.Q = numpy.full([shape[0] * shape[1], 4], -math.inf, dtype=float)
         # self.Q[self.get_position(self.endPosition)] = numpy.full(4, 0)
         self.currentPosition = Position(self.start[1], self.start[0])
+        self.finishReason = 'COMPLETED'
         self.stepsNumber = []
 
-    def startLearn(self, strategy = 1):
+    def startLearn(self, strategy = 1, rStrategy=1, learningRate = 0.8, futureStepsRate = 0.9, e=0.1, t=0.5):
         self.resetMaze()
         self.strategy = strategy
-        start = time.time()
+        self.rStrategy = rStrategy
+        self.learningRate = learningRate
+        self.futureStepsRate = futureStepsRate
+        self.e = e
+        self.t = t
+        self.startTime = time.time()
         self.learn()
         end = time.time()
         self.saveQRToFile()
-        return end-start, len(self.stepsNumber), self.stepsNumber
-        # return end-start, self.stepsNumber, self.Q, self.R
+        return self.finishReason, end-self.startTime, len(self.stepsNumber), self.stepsNumber, self.Q, self.R
 
     def learn(self):
-        shape = self.maze.shape
-        self.P = numpy.zeros([shape[0] * shape[1], 4])
+        self.singleEpoche()
+        if self.stepsNumber.shape[0] > 3:
+            if self.stepsNumber[-1] == self.stepsNumber[-2] and self.stepsNumber[-2] == self.stepsNumber[-3]:
+                print('finished')
+            elif len(self.stepsNumber) > 500:
+                print('max epoches reached')
+                self.finishReason = 'MAX_EPOCHE'
+            elif time.time() - self.startTime > 5*60:
+                print('max time reached')
+                self.finishReason = 'MAX_TIME'
+            else:
+                self.currentPosition = self.startPosition
+                self.learn()
+        else:
+            self.currentPosition = self.startPosition
+            self.learn()
+
+    def singleEpoche(self):
         steps_number = 0
         while self.currentPosition != self.endPosition:
             self.discover_neighbourhood()
@@ -67,42 +99,25 @@ class LearnRL:
 
         self.stepsNumber = numpy.append(self.stepsNumber, steps_number)
 
-        print(steps_number)
-        if self.stepsNumber.shape[0] > 3:
-            if self.stepsNumber[-1] == self.stepsNumber[-2] and self.stepsNumber[-2] == self.stepsNumber[-3]:
-                print('finished')
-                 # print(self.Q)
-            elif len(self.stepsNumber) > 500:
-                print('max epoches reached')
-            else:
-                self.currentPosition = self.startPosition
-                self.learn()
-        else:
-            self.currentPosition = self.startPosition
-            self.learn()
-
-    def startFindPath(self, Q, R, strategy=1):
+    def startFindPath(self, Q, R,  strategy = 1, rStrategy=1, learningRate = 0.8, futureStepsRate = 0.9, e=0.1, t=0.5):
         self.resetMaze()
         self.strategy = strategy
+        self.rStrategy = rStrategy
+        self.learningRate = learningRate
+        self.futureStepsRate = futureStepsRate
+        self.e = e
+        self.t = t
         self.Q = Q
         self.R = R
         start = time.time()
-        stepsNumber = self.findPath()
+        self.singleEpoche()
         end = time.time()
         self.saveQRToFile()
-        return end - start, stepsNumber
+        return end - start, self.stepsNumber[0]
 
     def saveQRToFile(self):
-        numpy.save('./R.npy', self.R)
-        numpy.save('./Q.npy', self.Q)
-
-    def findPath(self):
-        steps_number = 0
-        while self.currentPosition != self.endPosition:
-            self.discover_neighbourhood()
-            self.make_next_move(self.get_next_move())
-            steps_number = steps_number + 1
-        return steps_number
+        numpy.save('../R.npy', self.R)
+        numpy.save('../Q.npy', self.Q)
 
     def discover_neighbourhood(self):
         x = self.currentPosition.x[0]
@@ -129,11 +144,12 @@ class LearnRL:
         elif position in self.bonusFields:
             self.R[position][direction.value] = -0.5
         else:
-            # if self.strategy == 1:
+            if self.rStrategy == 1:
                 self.R[position][direction.value] = -1
-                # self.R[position][direction.value] = -5 + (1/self.calculate_distance_to_end2(self.get_next_position(direction)))
-            # elif self.strategy == 2:
-            #     self.R[position][direction.value] = (1/self.calculate_distance_to_end(self.get_next_position(direction)))
+            elif self.strategy == 2:
+                self.R[position][direction.value] = -2 + (1/self.calculate_distance_to_end(self.get_next_position(direction)))
+            elif self.strategy == 3:
+                self.R[position][direction.value] = -2 + (1/self.calculate_distance_to_end2(self.get_next_position(direction)))
 
     def get_q_row(self, position):
         q = self.Q[position]
@@ -155,6 +171,30 @@ class LearnRL:
         position = self.get_position(self.currentPosition)
         max_indices = numpy.argwhere(self.get_q_row(position) == self.get_max_value(position))
         return Direction(random.choice(max_indices))
+
+    def e_greedy_strategy(self):
+        position = self.get_position(self.currentPosition)
+        values = numpy.argwhere(self.get_q_row(position) != -math.inf)
+        if numpy.random.rand(1) < self.e:
+            return Direction(random.choice(values))
+        else:
+            return self.greedy_strategy()
+
+    def boltzman_strategy(self):
+        position = self.get_position(self.currentPosition)
+        qRow = self.get_q_row(position)
+        values = numpy.argwhere(qRow != -math.inf).flatten()
+        numerator = []
+        p = []
+        sum = 0;
+        for v in values:
+            num = math.exp(qRow[v]/self.t)
+            sum = sum + num;
+            numerator.append(num)
+        for n in numerator:
+            p.append(n/sum)
+
+        return Direction(numpy.random.choice(values, p=p))
 
     def calculate_distance_to_end(self, position):
         return abs(position.x - self.endPosition.x) + abs(position.y - self.endPosition.y)
@@ -183,6 +223,10 @@ class LearnRL:
         if self.strategy == 1:
             return self.greedy_strategy()
         elif self.strategy == 2:
+            return self.e_greedy_strategy()
+        elif self.strategy == 3:
+            return self.boltzman_strategy()
+        elif self.strategy == 4:
             return self.a_star_like()
 
     def get_max_value(self, position):
@@ -204,7 +248,6 @@ class LearnRL:
         reward = self.R[self.get_position(previous_position)][move_direction.value]
         maxNextQValue = self.get_max_value(self.get_position(self.currentPosition))
         currentValue = self.Q[self.get_position(previous_position)][move_direction.value]
-        punishment = self.P[self.get_position(previous_position)][move_direction.value]
-        self.Q[self.get_position(previous_position)][move_direction.value] = (1 - self.learningRate) * currentValue + self.learningRate * (
-                                                                                         reward + self.futureStepsRate * maxNextQValue)
-        self.P[self.get_position(previous_position)][move_direction.value] = punishment + 1
+
+        newValues = reward + self.futureStepsRate * maxNextQValue
+        self.Q[self.get_position(previous_position)][move_direction.value] = (1 - self.learningRate) * currentValue + self.learningRate * newValues
