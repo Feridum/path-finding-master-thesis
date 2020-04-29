@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from numpy import load,empty, asarray
 import csv
@@ -33,7 +34,10 @@ def createSummaryResult(directory, files):
 
 
 def createSummaryResultForRL(directory, strategy, rStrategy, e, t):
-    numberOfResults = len([name for name in os.listdir(RL_RESULT_PATH + directory)])
+    folderName = '_'.join(str(x) for x in [strategy, rStrategy, e, t])
+    numberOfResults = len([name for name in os.listdir(RL_RESULT_PATH + directory+'/'+folderName)])
+    pathlib.Path(RL_CSV_PATH + folderName).mkdir(parents=True, exist_ok=True)
+
     data = [x[:] for x in [[None] * (numberOfResults+1)] * 6]
 
     data[0][0] = 'learningRate'
@@ -45,8 +49,8 @@ def createSummaryResultForRL(directory, strategy, rStrategy, e, t):
 
     for lIndex, learningRate in enumerate([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
         for fIndex, futureStepsRate in enumerate([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
-            pathName = '_'.join(str(x) for x in [learningRate, futureStepsRate, strategy, rStrategy, e, t])
-            [reason, time, epocheNumber, stepsNumber, _, _] = load(RL_RESULT_PATH + directory + '/' + pathName + '.npy', allow_pickle=True)
+            pathName = '_'.join(str(x) for x in [learningRate, futureStepsRate])
+            [reason, time, epocheNumber, stepsNumber, _, _] = load(RL_RESULT_PATH + directory + '/' + folderName + '/' + pathName + '.npy', allow_pickle=True)
             index = lIndex * 9 + fIndex
             data[0][index+1] = learningRate
             data[1][index+1] = futureStepsRate
@@ -57,34 +61,38 @@ def createSummaryResultForRL(directory, strategy, rStrategy, e, t):
 
 
 
-    with open(RL_CSV_PATH + directory + '.csv', 'w') as csvfile:
+    with open(RL_CSV_PATH + folderName + '/'+directory + '.csv', 'w') as csvfile:
         filewriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         rows = zip(data)
         for row in rows:
             filewriter.writerow(row)
 
 def createSummaryResultForRLCheck(directory, strategy, rStrategy, e, t):
-    numberOfResults = len([name for name in os.listdir(RL_CHECK_RESULT_PATH + directory)])
-    data = [x[:] for x in [[None] * (numberOfResults+1)] * 4]
+    folderName = '_'.join(str(x) for x in [strategy, rStrategy, e, t])
+    numberOfResults = len([name for name in os.listdir(RL_CHECK_RESULT_PATH + directory+'/'+folderName)])
+    pathlib.Path(RL_CHECK_CSV_PATH + folderName).mkdir(parents=True, exist_ok=True)
+    data = [x[:] for x in [[None] * (numberOfResults+1)] * 5]
 
     data[0][0] = 'learningRate'
     data[1][0] = 'futureStepsRate'
     data[2][0] = 'Czas'
     data[3][0] = 'Dlugosc sciezki'
+    data[4][0] = 'Powod'
 
     for lIndex, learningRate in enumerate([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
         for fIndex, futureStepsRate in enumerate([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
-            pathName = '_'.join(str(x) for x in [learningRate, futureStepsRate, strategy, rStrategy, e, t])
-            [time, stepsNumber] = load(RL_CHECK_RESULT_PATH + directory + '/' + pathName + '.npy', allow_pickle=True)
+            pathName = '_'.join(str(x) for x in [learningRate, futureStepsRate])
+            [time, stepsNumber, reason] = load(RL_CHECK_RESULT_PATH + directory + '/' + folderName + '/' + pathName + '.npy', allow_pickle=True)
             index = lIndex * 9 + fIndex
             data[0][index+1] = learningRate
             data[1][index+1] = futureStepsRate
             data[2][index+1] = time
             data[3][index+1] = stepsNumber
+            data[4][index+1] = reason
 
 
 
-    with open(RL_CHECK_CSV_PATH + directory + '.csv', 'w') as csvfile:
+    with open(RL_CHECK_CSV_PATH + folderName + '/' + directory + '.csv', 'w') as csvfile:
         filewriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         rows = zip(data)
         for row in rows:

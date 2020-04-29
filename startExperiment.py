@@ -10,21 +10,22 @@ from readMaze import parseMaze
 
 def start_experiment():
     # maze = parseMaze('./10_simple.txt')
-    maze = parseMaze('./maps/txt/map1.txt')
-    learn_a_star = LearnAStar(maze)
-    aResults = learn_a_star.start()
-    print(aResults[2])
+    maze = parseMaze('./maps/txt/50x50_wall.txt')
+    # learn_a_star = LearnAStar(maze)
+    # aResults = learn_a_star.start()
+    # print(aResults[2])
     learnRL = LearnRL(maze, seed=1584259720496)
-    results = learnRL.startLearn(strategy=3, rStrategy=2)
+    results = learnRL.startLearn(strategy=4, rStrategy=1)
     print(results)
+    # visualizeRL(results[4], 10,10)
     # save('results2', asarray(results))
 
 def start_a_star_experiment():
-    maze = parseMaze('./10_simple.txt')
+    maze = parseMaze('./maps/txt/50x50_wall.txt')
     # maze = parseMaze('./maps/txt/map1.txt')
     learn_a_star = LearnAStar(maze)
     [time, length, path, visited] = learn_a_star.start()
-    visualizeAStar(maze, path, visited)
+    # visualizeAStar(maze, path, visited)
     save('resultastar', asarray([time,length,path,visited]))
 
 
@@ -36,8 +37,8 @@ def start_dijkstra_experiment():
     visualizeAStar(maze, path, visited)
 
 def start_bfs_experiment():
-    # maze = parseMaze('./10_simple.txt')
-    maze = parseMaze('./maps/txt/map1.txt')
+    maze = parseMaze('./10_simple.txt')
+    # maze = parseMaze('./maps/txt/map1.txt')
     learn_bfs = LearnBFS(maze)
     [time, length, path, visited]  = learn_bfs.start()
     print(length, time, path)

@@ -34,10 +34,13 @@ def createMaze(filename):
 
 def createMazeForMazeType(mazeType):
     sizes = [10,50,100]
+    variants = ['', '_change_1', '_change_2', '_change_start']
 
     for s in sizes:
-        createMaze(str(s)+'x'+str(s)+'_'+mazeType)
+        for v in variants:
+            createMaze(str(s)+'x'+str(s)+'_'+mazeType+v)
 
 if __name__ == "__main__":
-    # createMaze('10x10_wall')
-    createMazeForMazeType('wall')
+    mazes = ['wall', 'columns', 'board']
+    for m in mazes:
+        createMazeForMazeType(m)

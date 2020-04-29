@@ -39,10 +39,17 @@ def runSingle(mazeName):
     createSummaryResult(mazeName, ['a_star', 'dijkstra', 'bfs'])
 
 def runAll(mazeType):
-    sizes = [10,50,100]
+    sizes = [10, 50, 100]
+    variants = ['', '_change_1', '_change_2', '_change_start']
 
     for s in sizes:
-        runSingle(str(s)+'x'+str(s)+'_'+mazeType)
+        for v in variants:
+            filename = str(s) + 'x' + str(s) + '_' + mazeType + v
+            print('<----- Start' + filename + '------>')
+            runSingle(filename)
+            print('<----- End' + filename + '------>')
 
 if __name__ == "__main__":
-    runAll('wall')
+    mazes = ['wall', 'columns', 'board']
+    for m in mazes:
+        runAll(m)
