@@ -65,7 +65,7 @@ class LearnRL:
         self.N = numpy.full([shape[0] * shape[1], 4], 1, dtype=float)
         # self.Q[self.get_position(self.endPosition)] = numpy.full(4, 0)
         self.currentPosition = Position(self.start[1], self.start[0])
-        self.finishReason = ''
+        self.finishReason = 'COMPLETED'
         self.stepsNumber = []
 
     def startLearn(self, strategy = 1, rStrategy=1, learningRate = 0.8, futureStepsRate = 0.9, e=0.1, t=0.5):

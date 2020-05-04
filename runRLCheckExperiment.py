@@ -26,8 +26,8 @@ def runCheck(mazeName, newMaze, strategy, rStrategy, e, t):
 
             [_, _, _, _, Q, R] = load(RESULT_PATH + mazeName + '/' + folderName + '/' + pathName + '.npy', allow_pickle=True)
 
-            results = learnRL.startFindPath(Q, R, strategy=strategy, rStrategy=rStrategy, learningRate=0.5,
-                                         futureStepsRate=0.5, e=e, t=t)
+            results = learnRL.startFindPath(Q, R, strategy=1, rStrategy=1, learningRate=0.5,
+                                         futureStepsRate=0.5, e=0.1, t=0.1)
             save(RESULT_PATH_CHECK + newMaze + '/' + folderName + '/' + pathName + '.npy', asarray(results))
 
     createSummaryResultForRLCheck(newMaze, strategy=strategy, rStrategy=rStrategy, e=e, t=t)
@@ -47,15 +47,18 @@ def runAllCheck(mazeType, strategy, rStrategy, e, t):
 
 
 if __name__ == "__main__":
-    mazeType = 'wall',
-    strategy = 1
-    rStrategy = 1
+    mazeType = ['wall', 'columns', 'board']
+    strategies = [1,2,4]
+    rStrategy = sys.argv[1]
 
-    if strategy == 1 or strategy == 4:
-        runAllCheck(mazeType, strategy=strategy, rStrategy=rStrategy, e=0.1, t=0.1)
-    else:
-        for et in [0.1, 0.2, 0.3, 0.4, 0.5]:
-            print('<----- Parameter et' + str(et) + '------>')
-            runAllCheck(mazeType, strategy=strategy, rStrategy=rStrategy, e=et, t=et)
+    for s in strategies:
+        print('<----- Start strategy' + str(s) + '------>')
+        for m in mazeType:
+            if s == 1 or s == 4:
+                runAllCheck(m, strategy=s, rStrategy=rStrategy, e=0.1, t=0.1)
+            else:
+                for et in [0.2, 0.4, 0.6]:
+                    print('<----- Parameter et' + str(et) + '------>')
+                    runAllCheck(m, strategy=s, rStrategy=rStrategy, e=et, t=et)
 
 
