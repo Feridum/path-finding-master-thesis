@@ -26,7 +26,7 @@ def createRank(size):
                 dataToWrite = float(time) + float(length)
                 sum = 0
                 for v in variants:
-                    [time, length, _, visited] = load(DATA_PATH + directory + '/' + f, allow_pickle=True)
+                    [time, length, _, visited] = load(DATA_PATH + directory + v + '/' + f, allow_pickle=True)
                     sum = sum + float(time) + float(length)
 
                 data[row][column] = dataToWrite + sum
